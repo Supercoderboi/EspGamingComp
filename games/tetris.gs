@@ -1,3 +1,9 @@
+// @name: Tetris
+// @id: tetris
+// @description: Classic falling-block puzzle game.
+// @engine: GameScript
+// @version: 1.0.0
+
 // =============================================================================
 // GameOS Tetris (GameScript 1.0)
 // =============================================================================
