@@ -1,1 +1,16 @@
-
+{
+  "schema_version": 1,
+  "catalog_name": "ESP GameOS Games",
+  "game_count": 1,
+  "games": [
+    {
+      "id": "tetris",
+      "name": "Tetris",
+      "description": "Classic falling-block puzzle game.",
+      "engine": "GameScript",
+      "version": "1.0.0",
+      "file": "games/tetris.gs",
+      "format": "gs"
+    }
+  ]
+}
