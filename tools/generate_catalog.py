@@ -1,55 +1,65 @@
-
+#!/usr/bin/env python3
+import os
 import json
 import re
-from pathlib import Path
+import sys
 
-ROOT = Path(__file__).resolve().parent.parent
-GAMES_DIR = ROOT / "games"
-CATALOG_FILE = ROOT / "games.json"
+GAMES_DIR = "games"
+CATALOG_FILE = "games.json"
 
-def read_metadata(path):
+def parse_metadata(file_path):
     metadata = {}
-
-    with path.open("r", encoding="utf-8") as f:
+    pattern = re.compile(r"^\s*//\s*@(\w+):\s*(.+)$")
+    
+    with open(file_path, "r", encoding="utf-8") as f:
         for line in f:
-            if not line.lstrip().startswith("//"):
-                break
-
-            match = re.match(
-                r"\s*//\s*@([\w-]+)\s*:\s*(.*?)\s*$",
-                line
-            )
-
+            match = pattern.match(line)
             if match:
-                metadata[match.group(1)] = match.group(2)
+                key, val = match.group(1).strip().lower(), match.group(2).strip()
+                metadata[key] = val
+            elif line.strip() and not line.strip().startswith("//"):
+                break
+    return metadata
 
-    game_id = re.sub(
-        r"[^a-z0-9-]+", "-",
-        path.stem.lower()
-    ).strip("-")
+def build_catalog():
+    if not os.path.exists(GAMES_DIR):
+        print(f"Error: Directory '{GAMES_DIR}' not found.", file=sys.stderr)
+        sys.exit(1)
 
-    return {
-        "id": metadata.get("id", game_id),
-        "name": metadata.get("name", path.stem.title()),
-        "description": metadata.get(
-            "description", "GameScript game."
-        ),
-        "engine": metadata.get("engine", "GameScript"),
-        "version": metadata.get("version", "1.0.0"),
-        "file": path.relative_to(ROOT).as_posix(),
-        "format": "gs"
-    }
+    games = []
+    seen_ids = set()
 
-def main():
-    games = sorted(
-        (read_metadata(path)
-         for path in GAMES_DIR.rglob("*.gs")),
-        key=lambda game: game["id"]
-    )
+    for root, _, files in os.walk(GAMES_DIR):
+        for file in sorted(files):
+            if file.endswith(".gs"):
+                full_path = os.path.join(root, file)
+                rel_path = os.path.relpath(full_path, ".").replace("\\", "/")
+                meta = parse_metadata(full_path)
+                
+                game_id = meta.get("id", os.path.splitext(file)[0].lower())
+                
+                if not re.match(r"^[a-z0-9_\-]+$", game_id):
+                    print(f"Error: Invalid game ID '{game_id}' in {rel_path}", file=sys.stderr)
+                    sys.exit(1)
+                    
+                if game_id in seen_ids:
+                    print(f"Error: Duplicate game ID '{game_id}' found in {rel_path}", file=sys.stderr)
+                    sys.exit(1)
+                
+                seen_ids.add(game_id)
 
-    ids = [game["id"] for game in games]
-    if len(ids) != len(set(ids)):
-        raise SystemExit("Error: duplicate game IDs found.")
+                game_entry = {
+                    "id": game_id,
+                    "name": meta.get("name", game_id.capitalize()),
+                    "description": meta.get("description", "No description provided."),
+                    "engine": meta.get("engine", "GameScript"),
+                    "version": meta.get("version", "1.0.0"),
+                    "file": rel_path,
+                    "format": "gs"
+                }
+                games.append(game_entry)
+
+    games.sort(key=lambda x: x["id"])
 
     catalog = {
         "schema_version": 1,
@@ -58,12 +68,18 @@ def main():
         "games": games
     }
 
-    CATALOG_FILE.write_text(
-        json.dumps(catalog, indent=2) + "\n",
-        encoding="utf-8"
-    )
+    new_content = json.dumps(catalog, indent=2) + "\n"
 
-    print(f"Generated games.json with {len(games)} games.")
+    if os.path.exists(CATALOG_FILE):
+        with open(CATALOG_FILE, "r", encoding="utf-8") as f:
+            if f.read() == new_content:
+                print("Catalog is already up to date.")
+                return
+
+    with open(CATALOG_FILE, "w", encoding="utf-8") as f:
+        f.write(new_content)
+    
+    print(f"Successfully generated {CATALOG_FILE} with {len(games)} games.")
 
 if __name__ == "__main__":
-    main()
+    build_catalog()
