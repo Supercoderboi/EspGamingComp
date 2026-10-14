@@ -1,8 +1,17 @@
 {
   "schema_version": 1,
   "catalog_name": "ESP GameOS Games",
-  "game_count": 1,
+  "game_count": 2,
   "games": [
+    {
+      "id": "asteroids",
+      "name": "Asteroids",
+      "description": "Classic asteroids game.",
+      "engine": "GameScript",
+      "version": "1.0.0",
+      "file": "games/asteroids.gs",
+      "format": "gs"
+    },
     {
       "id": "tetris",
       "name": "Tetris",
