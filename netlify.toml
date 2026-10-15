@@ -1,0 +1,14 @@
+[build]
+  publish = "."
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Content-Type = "application/json"
+
+[[redirects]]
+  from = "http://espgamingcomp.netlify.app/*"
+  to = "http://espgamingcomp.netlify.app/:splat"
+  status = 200
+  force = true
