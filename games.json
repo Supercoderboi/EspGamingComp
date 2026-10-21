@@ -1,25 +1,12 @@
-{
-  "schema_version": 1,
-  "catalog_name": "ESP GameOS Games",
-  "game_count": 2,
-  "games": [
-    {
-      "id": "asteroids",
-      "name": "Asteroids",
-      "description": "Classic asteroids game.",
-      "engine": "GameScript",
-      "version": "1.0.0",
-      "file": "games/asteroids.gs",
-      "format": "gs"
-    },
-    {
-      "id": "tetris",
-      "name": "Tetris",
-      "description": "Classic falling-block puzzle game.",
-      "engine": "GameScript",
-      "version": "1.0.0",
-      "file": "games/tetris.gs",
-      "format": "gs"
-    }
-  ]
-}
+[
+  {
+    "id": "asteroids",
+    "name": "Asteroids",
+    "file": "games/asteroids.gsc"
+  },
+  {
+    "id": "tetris",
+    "name": "Tetris",
+    "file": "games/tetris.gsc"
+  }
+]
