@@ -1,0 +1,40 @@
+name: GameScript compiler checks
+
+on:
+  push:
+    paths:
+      - "tools/**"
+      - "tests/**"
+      - "games/**/*.gs"
+      - ".github/workflows/gamescript.yml"
+  pull_request:
+    paths:
+      - "tools/**"
+      - "tests/**"
+      - "games/**/*.gs"
+      - ".github/workflows/gamescript.yml"
+  workflow_dispatch:
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Test GSC1 compiler
+        run: python -m unittest discover -s tests -v
+      - name: Compile game sources when present
+        run: |
+          if [ -d games ] && find games -type f -name '*.gs' -print -quit | grep -q .; then
+            python tools/gsc_pack.py games build/games
+          else
+            echo "No games/**/*.gs files in this commit; compiler tests passed."
+          fi
+      - uses: actions/upload-artifact@v4
+        if: ${{ hashFiles('build/games/**/*.gsc') != '' }}
+        with:
+          name: games-gsc1
+          path: build/games/
+          if-no-files-found: error
