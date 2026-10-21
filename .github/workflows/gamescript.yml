@@ -16,7 +16,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -36,6 +36,20 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: Build Pages site and catalog
         run: python tools/build_game_site.py games build/site
+      - name: Save generated games and catalog to the repository
+        run: |
+          find games -type f -name '*.gsc' -delete
+          cp -a build/site/games/. games/
+          cp build/site/games.json games.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A -- games games.json
+          if git diff --cached --quiet; then
+            echo "Generated games and catalog are already current."
+          else
+            git commit -m "Build packed GameScript games"
+            git push
+          fi
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
